@@ -5,8 +5,9 @@ import { useEffect } from "react";
 export function PWARegister() {
   useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch((err) => {
-        console.log("SW registration failed:", err);
+      // Unregister any existing service workers to prevent caching issues
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
       });
     }
   }, []);
