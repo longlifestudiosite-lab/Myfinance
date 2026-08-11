@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mic, Wallet, Eye, EyeOff } from "lucide-react";
+import { Mic, Eye, EyeOff } from "lucide-react";
 
 interface LoginScreenProps {
   onSignIn: (email: string, password: string) => Promise<{ error: any }>;
@@ -48,8 +48,8 @@ export function LoginScreen({ onSignIn, onSignUp }: LoginScreenProps) {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-primary-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200">
-            <Wallet className="w-10 h-10 text-white" />
+          <div className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200 overflow-hidden">
+            <img src="/icon-512.png" alt="MyFinance" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900">MyFinance</h1>
           <p className="text-gray-500 mt-1">Controle financeiro por voz</p>

@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   title: "MyFinance - Controle Financeiro por Voz",
   description: "Controle suas finanças usando comando de voz",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -28,6 +32,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+      </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
         <PWARegister />
         {children}
