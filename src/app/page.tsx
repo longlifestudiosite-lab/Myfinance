@@ -72,6 +72,7 @@ export default function HomePage() {
   }
 
   return (
+    <>
     <PullToRefresh onRefresh={refetch}>
     <main className="max-w-md mx-auto px-4 py-6 pb-24 min-h-screen">
       {/* Header */}
@@ -188,29 +189,29 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* Voice FAB - only on home tab */}
-      {activeTab === "home" && (
-        <VoiceButton
-          isListening={isListening}
-          onStart={startListening}
-          onStop={stopListening}
-        />
-      )}
-
-      {/* Bottom Navigation */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Add Transaction Form Modal */}
-      {showAddForm && (
-        <AddTransactionForm
-          onSubmit={(data) => {
-            addManualTransaction(data);
-            setShowAddForm(false);
-          }}
-          onClose={() => setShowAddForm(false)}
-        />
-      )}
     </main>
     </PullToRefresh>
+
+    {/* Fixed elements - outside PullToRefresh */}
+    {activeTab === "home" && (
+      <VoiceButton
+        isListening={isListening}
+        onStart={startListening}
+        onStop={stopListening}
+      />
+    )}
+
+    <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+    {showAddForm && (
+      <AddTransactionForm
+        onSubmit={(data) => {
+          addManualTransaction(data);
+          setShowAddForm(false);
+        }}
+        onClose={() => setShowAddForm(false)}
+      />
+    )}
+    </>
   );
 }
