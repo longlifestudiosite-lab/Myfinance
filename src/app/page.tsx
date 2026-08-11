@@ -19,7 +19,7 @@ import { Mic } from "lucide-react";
 type Tab = "home" | "dashboard" | "alerts";
 
 export default function HomePage() {
-  const { user, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const { transactions, addTransaction, summary, categorySummary, loading } =
     useTransactions(user?.id);
   const { alerts, limits, setLimit, removeLimit } = useBudgetAlerts(
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   // Show login screen if not authenticated
   if (!user && !authLoading) {
-    return <LoginScreen onLogin={signInWithGoogle} loading={authLoading} />;
+    return <LoginScreen onSignIn={signIn} onSignUp={signUp} />;
   }
 
   // Loading state
@@ -59,11 +59,11 @@ export default function HomePage() {
         <div>
           <h1 className="text-2xl font-bold text-primary-700">MyFinance</h1>
           <p className="text-sm text-gray-500">
-            Olá, {user?.user_metadata?.full_name?.split(" ")[0] || "usuário"}
+            Olá, {user?.email?.split("@")[0] || "usuário"}
           </p>
         </div>
         <UserMenu
-          avatarUrl={user?.user_metadata?.avatar_url}
+          avatarUrl={undefined}
           onSignOut={signOut}
         />
       </header>
