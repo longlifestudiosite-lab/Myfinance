@@ -19,3 +19,16 @@
     @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4;
   }
 }
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}

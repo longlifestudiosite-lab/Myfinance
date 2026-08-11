@@ -9,26 +9,36 @@ import { Dashboard } from "@/components/Dashboard";
 import { BudgetAlerts } from "@/components/BudgetAlerts";
 import { BottomNav } from "@/components/BottomNav";
 import { UserMenu } from "@/components/UserMenu";
+import { AddTransactionForm } from "@/components/AddTransactionForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useHousehold } from "@/hooks/useHousehold";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgetAlerts } from "@/hooks/useBudgetAlerts";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { parseVoiceCommand } from "@/lib/parseVoiceCommand";
-import { Mic } from "lucide-react";
+import { Mic, Plus } from "lucide-react";
 
 type Tab = "home" | "dashboard" | "alerts";
 
 export default function HomePage() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const { householdId, loading: householdLoading } = useHousehold(user?.id);
-  const { transactions, addTransaction, summary, categorySummary, loading } =
-    useTransactions(user?.id, householdId);
+  const {
+    transactions,
+    addTransaction,
+    addManualTransaction,
+    editTransaction,
+    deleteTransaction,
+    summary,
+    categorySummary,
+    loading,
+  } = useTransactions(user?.id, householdId);
   const { alerts, limits, setLimit, removeLimit } = useBudgetAlerts(
     householdId,
     categorySummary
   );
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const { isListening, transcript, startListening, stopListening } =
     useSpeechRecognition({
@@ -95,8 +105,22 @@ export default function HomePage() {
           )}
 
           <section className="mt-6">
-            <h2 className="text-lg font-semibold mb-3">Últimas transações</h2>
-            <TransactionList transactions={transactions} loading={loading} />
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-lg font-semibold">Este mês</h2>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Adicionar
+              </button>
+            </div>
+            <TransactionList
+              transactions={transactions}
+              loading={loading}
+              onEdit={editTransaction}
+              onDelete={deleteTransaction}
+            />
           </section>
         </>
       )}
@@ -137,6 +161,17 @@ export default function HomePage() {
 
       {/* Bottom Navigation */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Add Transaction Form Modal */}
+      {showAddForm && (
+        <AddTransactionForm
+          onSubmit={(data) => {
+            addManualTransaction(data);
+            setShowAddForm(false);
+          }}
+          onClose={() => setShowAddForm(false)}
+        />
+      )}
     </main>
   );
 }
