@@ -12,6 +12,7 @@ export interface NewTransaction {
   installments_total?: number;
   start_month: number;
   start_year: number;
+  due_day: number;
 }
 
 interface AddTransactionFormProps {
@@ -48,6 +49,7 @@ export function AddTransactionForm({ onSubmit, onClose }: AddTransactionFormProp
   const [installments, setInstallments] = useState("12");
   const [startMonth, setStartMonth] = useState(now.getMonth() + 1);
   const [startYear, setStartYear] = useState(now.getFullYear());
+  const [dueDay, setDueDay] = useState("10");
 
   const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
@@ -65,6 +67,7 @@ export function AddTransactionForm({ onSubmit, onClose }: AddTransactionFormProp
       installments_total: recurrence === "installment" ? parseInt(installments) : undefined,
       start_month: recurrence === "fixed" ? 1 : startMonth,
       start_year: recurrence === "fixed" ? startYear : startYear,
+      due_day: parseInt(dueDay) || 10,
     });
   };
 
@@ -236,6 +239,24 @@ export function AddTransactionForm({ onSubmit, onClose }: AddTransactionFormProp
               </p>
             </div>
           )}
+
+          {/* Due day */}
+          <div>
+            <label htmlFor="dueDay" className="text-sm font-medium text-gray-700">
+              Dia de vencimento (todo mês)
+            </label>
+            <input
+              id="dueDay"
+              type="number"
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              required
+              min="1"
+              max="31"
+              className="mt-1 w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="Ex: 10"
+            />
+          </div>
 
           {/* Category */}
           <div>

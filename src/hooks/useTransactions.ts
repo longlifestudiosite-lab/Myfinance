@@ -5,6 +5,9 @@ import { supabase } from "@/lib/supabase";
 import type { ParsedTransaction } from "@/lib/parseVoiceCommand";
 import type { NewTransaction } from "@/components/AddTransactionForm";
 
+export type PaymentStatus = "pending" | "paid" | "received" | "overdue";
+export type DisplayStatus = "em_dia" | "alerta" | "pago" | "atrasado" | "pendente" | "recebido";
+
 export interface Transaction {
   id: string;
   user_id: string;
@@ -19,6 +22,9 @@ export interface Transaction {
   start_month: number | null;
   start_year: number | null;
   parent_id: string | null;
+  due_day: number | null;
+  status: PaymentStatus;
+  paid_at: string | null;
   created_at: string;
 }
 
@@ -33,6 +39,23 @@ export interface CategorySummary {
   total: number;
   percentage: number;
   count: number;
+}
+
+export function getDisplayStatus(t: Transaction): DisplayStatus {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const dueDay = t.due_day || 10;
+
+  if (t.type === "income") {
+    if (t.status === "received") return "recebido";
+    if (currentDay > dueDay) return "atrasado";
+    return "pendente";
+  } else {
+    if (t.status === "paid") return "pago";
+    if (currentDay > dueDay) return "atrasado";
+    if (dueDay - currentDay <= 5) return "alerta";
+    return "em_dia";
+  }
 }
 
 export function useTransactions(userId: string | undefined, householdId: string | null) {
@@ -67,16 +90,13 @@ export function useTransactions(userId: string | undefined, householdId: string 
 
   // Filter transactions relevant to current month
   const currentMonthTransactions = transactions.filter((t) => {
-    // Once: show if created this month
     if (t.recurrence === "once") {
       const d = new Date(t.created_at);
       return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
     }
-    // Fixed: always show (jan-dec)
     if (t.recurrence === "fixed") {
       return true;
     }
-    // Installment: show if current month is within the installment range
     if (t.recurrence === "installment" && t.start_month && t.start_year && t.installments_total) {
       const startDate = new Date(t.start_year, t.start_month - 1, 1);
       const currentDate = new Date(currentYear, currentMonth - 1, 1);
@@ -99,6 +119,8 @@ export function useTransactions(userId: string | undefined, householdId: string 
           description: parsed.description,
           category: parsed.category,
           recurrence: "once",
+          status: parsed.type === "expense" ? "paid" : "received",
+          paid_at: new Date().toISOString(),
         })
         .select()
         .single();
@@ -117,9 +139,9 @@ export function useTransactions(userId: string | undefined, householdId: string 
   const addManualTransaction = useCallback(
     async (newTx: NewTransaction) => {
       if (!userId || !householdId) return;
+      const dueDay = newTx.due_day || 10;
 
       if (newTx.recurrence === "installment" && newTx.installments_total) {
-        // Create individual installment entries
         const entries = [];
         for (let i = 1; i <= newTx.installments_total; i++) {
           const month = ((newTx.start_month - 1 + (i - 1)) % 12) + 1;
@@ -136,7 +158,9 @@ export function useTransactions(userId: string | undefined, householdId: string 
             installment_current: i,
             start_month: month,
             start_year: year,
-            created_at: new Date(year, month - 1, 1).toISOString(),
+            due_day: dueDay,
+            status: "pending" as const,
+            created_at: new Date(year, month - 1, dueDay).toISOString(),
           });
         }
         const { data, error } = await supabase
@@ -152,7 +176,6 @@ export function useTransactions(userId: string | undefined, householdId: string 
           setTransactions((prev) => [...data.reverse(), ...prev]);
         }
       } else {
-        // Fixed or once
         const { data, error } = await supabase
           .from("transactions")
           .insert({
@@ -165,6 +188,8 @@ export function useTransactions(userId: string | undefined, householdId: string 
             recurrence: newTx.recurrence,
             start_month: newTx.start_month,
             start_year: newTx.start_year,
+            due_day: dueDay,
+            status: "pending" as const,
           })
           .select()
           .single();
@@ -180,6 +205,24 @@ export function useTransactions(userId: string | undefined, householdId: string 
     },
     [userId, householdId]
   );
+
+  const confirmPayment = useCallback(async (id: string) => {
+    const transaction = transactions.find((t) => t.id === id);
+    const newStatus = transaction?.type === "income" ? "received" : "paid";
+
+    const { error } = await supabase
+      .from("transactions")
+      .update({ status: newStatus, paid_at: new Date().toISOString() })
+      .eq("id", id);
+
+    if (!error) {
+      setTransactions((prev) =>
+        prev.map((t) =>
+          t.id === id ? { ...t, status: newStatus as PaymentStatus, paid_at: new Date().toISOString() } : t
+        )
+      );
+    }
+  }, [transactions]);
 
   const editTransaction = useCallback(
     async (id: string, updates: { description: string; amount: number; category: string }) => {
@@ -205,10 +248,10 @@ export function useTransactions(userId: string | undefined, householdId: string 
       installments_total: number;
       start_month: number;
       start_year: number;
+      due_day?: number;
     }) => {
       if (!userId || !householdId) return;
 
-      // Find and delete all existing installments with this base description
       const matchingIds = transactions
         .filter((t) => t.recurrence === "installment" && t.description.replace(/\s*\(\d+\/\d+\)\s*$/, "") === baseDescription)
         .map((t) => t.id);
@@ -217,7 +260,7 @@ export function useTransactions(userId: string | undefined, householdId: string 
         await supabase.from("transactions").delete().in("id", matchingIds);
       }
 
-      // Recreate with new params
+      const dueDay = updates.due_day || 10;
       const entries = [];
       for (let i = 1; i <= updates.installments_total; i++) {
         const month = ((updates.start_month - 1 + (i - 1)) % 12) + 1;
@@ -234,13 +277,14 @@ export function useTransactions(userId: string | undefined, householdId: string 
           installment_current: i,
           start_month: month,
           start_year: year,
-          created_at: new Date(year, month - 1, 1).toISOString(),
+          due_day: dueDay,
+          status: "pending" as const,
+          created_at: new Date(year, month - 1, dueDay).toISOString(),
         });
       }
 
       const { data } = await supabase.from("transactions").insert(entries).select();
 
-      // Update local state
       setTransactions((prev) => {
         const filtered = prev.filter((t) => !matchingIds.includes(t.id));
         return [...(data || []).reverse(), ...filtered];
@@ -270,12 +314,15 @@ export function useTransactions(userId: string | undefined, householdId: string 
     }
   }, []);
 
+  // Summary only counts confirmed (paid/received) transactions
   const summary: Summary = currentMonthTransactions.reduce(
     (acc, t) => {
-      if (t.type === "income") {
-        acc.income += t.amount;
-      } else {
-        acc.expenses += t.amount;
+      if (t.recurrence === "once" || t.status === "paid" || t.status === "received") {
+        if (t.type === "income") {
+          acc.income += t.amount;
+        } else {
+          acc.expenses += t.amount;
+        }
       }
       acc.balance = acc.income - acc.expenses;
       return acc;
@@ -284,7 +331,9 @@ export function useTransactions(userId: string | undefined, householdId: string 
   );
 
   const categorySummary: CategorySummary[] = (() => {
-    const expenses = currentMonthTransactions.filter((t) => t.type === "expense");
+    const expenses = currentMonthTransactions.filter(
+      (t) => t.type === "expense" && (t.recurrence === "once" || t.status === "paid")
+    );
     const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
     const grouped: Record<string, { total: number; count: number }> = {};
 
@@ -313,6 +362,7 @@ export function useTransactions(userId: string | undefined, householdId: string 
     addManualTransaction,
     editTransaction,
     editInstallment,
+    confirmPayment,
     deleteTransaction,
     deleteAllInstallments,
     summary,

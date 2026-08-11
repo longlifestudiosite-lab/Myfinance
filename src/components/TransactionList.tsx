@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Car, Home, Heart, BookOpen, Gamepad2, Shirt, Briefcase, HelpCircle, Repeat, CreditCard, Pencil, Trash2 } from "lucide-react";
+import { ShoppingCart, Car, Home, Heart, BookOpen, Gamepad2, Shirt, Briefcase, HelpCircle, Repeat, CreditCard, Pencil, Check } from "lucide-react";
 import type { Transaction } from "@/hooks/useTransactions";
+import { getDisplayStatus } from "@/hooks/useTransactions";
 import { EditTransactionModal } from "./EditTransactionModal";
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -20,13 +21,17 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   outros: <HelpCircle className="w-5 h-5" />,
 };
 
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  em_dia: { label: "Em dia", color: "text-green-600", bg: "bg-green-100" },
+  alerta: { label: "Vence em breve", color: "text-yellow-600", bg: "bg-yellow-100" },
+  pago: { label: "Pago ✓", color: "text-blue-600", bg: "bg-blue-100" },
+  atrasado: { label: "Atrasado", color: "text-red-600", bg: "bg-red-100" },
+  pendente: { label: "Pendente", color: "text-gray-600", bg: "bg-gray-100" },
+  recebido: { label: "Recebido ✓", color: "text-green-600", bg: "bg-green-100" },
+};
+
 function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 
 function getRecurrenceLabel(t: Transaction): string | null {
@@ -51,11 +56,19 @@ interface TransactionListProps {
   }) => void;
   onDelete: (id: string) => void;
   onDeleteAllInstallments: (baseDescription: string) => void;
+  onConfirmPayment: (id: string) => void;
 }
 
-export function TransactionList({ transactions, loading, onEdit, onEditInstallment, onDelete, onDeleteAllInstallments }: TransactionListProps) {
+export function TransactionList({
+  transactions,
+  loading,
+  onEdit,
+  onEditInstallment,
+  onDelete,
+  onDeleteAllInstallments,
+  onConfirmPayment,
+}: TransactionListProps) {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [swipedId, setSwipedId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -89,14 +102,14 @@ export function TransactionList({ transactions, loading, onEdit, onEditInstallme
       <div className="space-y-2">
         {transactions.map((t) => {
           const label = getRecurrenceLabel(t);
-          const isOpen = swipedId === t.id;
+          const displayStatus = t.recurrence !== "once" ? getDisplayStatus(t) : null;
+          const statusConfig = displayStatus ? STATUS_CONFIG[displayStatus] : null;
+          const canConfirm = displayStatus && !["pago", "recebido"].includes(displayStatus);
 
           return (
-            <div key={t.id} className="relative">
-              <div
-                className="card flex items-center gap-3 cursor-pointer"
-                onClick={() => setSwipedId(isOpen ? null : t.id)}
-              >
+            <div key={t.id} className="card p-3">
+              <div className="flex items-center gap-3">
+                {/* Icon */}
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                     t.type === "income"
@@ -110,14 +123,20 @@ export function TransactionList({ transactions, loading, onEdit, onEditInstallme
                     CATEGORY_ICONS[t.category] || CATEGORY_ICONS["outros"]
                   )}
                 </div>
+
+                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{t.description}</p>
                   <p className="text-xs text-gray-400">
                     {t.category}
                     {label && <span className="ml-1 text-primary-600 font-medium">• {label}</span>}
-                    {" • "}{formatDate(t.created_at)}
+                    {t.due_day && t.recurrence !== "once" && (
+                      <span className="ml-1">• Venc. dia {t.due_day}</span>
+                    )}
                   </p>
                 </div>
+
+                {/* Amount */}
                 <p
                   className={`font-semibold text-sm whitespace-nowrap ${
                     t.type === "income" ? "text-green-600" : "text-red-600"
@@ -127,22 +146,51 @@ export function TransactionList({ transactions, loading, onEdit, onEditInstallme
                 </p>
               </div>
 
-              {/* Action buttons */}
-              {isOpen && (
-                <div className="flex gap-2 mt-1 px-2 pb-1">
+              {/* Status bar + actions */}
+              {t.recurrence !== "once" && (
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-50">
+                  {/* Status badge */}
+                  {statusConfig && (
+                    <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${statusConfig.bg} ${statusConfig.color}`}>
+                      {statusConfig.label}
+                    </span>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-1">
+                    {canConfirm && (
+                      <button
+                        onClick={() => onConfirmPayment(t.id)}
+                        className={`flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium rounded-lg transition-colors ${
+                          t.type === "income"
+                            ? "text-green-700 bg-green-50 hover:bg-green-100"
+                            : "text-blue-700 bg-blue-50 hover:bg-blue-100"
+                        }`}
+                      >
+                        <Check className="w-3 h-3" />
+                        {t.type === "income" ? "Recebido" : "Pago"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setEditingTransaction(t)}
+                      className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100"
+                    >
+                      <Pencil className="w-3 h-3" />
+                      Editar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Once transactions - simple edit */}
+              {t.recurrence === "once" && (
+                <div className="flex justify-end mt-2 pt-2 border-t border-gray-50">
                   <button
-                    onClick={(e) => { e.stopPropagation(); setEditingTransaction(t); setSwipedId(null); }}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+                    onClick={() => setEditingTransaction(t)}
+                    className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-medium text-gray-500 bg-gray-50 rounded-lg hover:bg-gray-100"
                   >
                     <Pencil className="w-3 h-3" />
                     Editar
-                  </button>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onDelete(t.id); setSwipedId(null); }}
-                    className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Excluir
                   </button>
                 </div>
               )}

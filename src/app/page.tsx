@@ -29,6 +29,7 @@ export default function HomePage() {
     addManualTransaction,
     editTransaction,
     editInstallment,
+    confirmPayment,
     deleteTransaction,
     deleteAllInstallments,
     summary,
@@ -124,6 +125,7 @@ export default function HomePage() {
               onEditInstallment={editInstallment}
               onDelete={deleteTransaction}
               onDeleteAllInstallments={deleteAllInstallments}
+              onConfirmPayment={confirmPayment}
             />
           </section>
         </>
