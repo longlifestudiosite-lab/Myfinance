@@ -10,14 +10,13 @@ import { BudgetAlerts } from "@/components/BudgetAlerts";
 import { BottomNav } from "@/components/BottomNav";
 import { UserMenu } from "@/components/UserMenu";
 import { AddTransactionForm } from "@/components/AddTransactionForm";
-import { PullToRefresh } from "@/components/PullToRefresh";
 import { useAuth } from "@/hooks/useAuth";
 import { useHousehold } from "@/hooks/useHousehold";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgetAlerts } from "@/hooks/useBudgetAlerts";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { parseVoiceCommand } from "@/lib/parseVoiceCommand";
-import { Mic, Plus } from "lucide-react";
+import { Mic, Plus, RefreshCw } from "lucide-react";
 
 type Tab = "home" | "dashboard" | "alerts";
 
@@ -73,7 +72,6 @@ export default function HomePage() {
 
   return (
     <>
-    <PullToRefresh onRefresh={refetch}>
     <main className="max-w-md mx-auto px-4 py-6 pb-24 min-h-screen">
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
@@ -83,7 +81,16 @@ export default function HomePage() {
             Olá, {user?.email?.split("@")[0] || "usuário"}
           </p>
         </div>
-        <UserMenu avatarUrl={undefined} onSignOut={signOut} />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refetch()}
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-colors"
+            aria-label="Atualizar"
+          >
+            <RefreshCw className="w-4 h-4 text-gray-400" />
+          </button>
+          <UserMenu avatarUrl={undefined} onSignOut={signOut} />
+        </div>
       </header>
 
       {/* Tab content */}
@@ -190,7 +197,6 @@ export default function HomePage() {
       )}
 
     </main>
-    </PullToRefresh>
 
     {/* Fixed elements - outside PullToRefresh */}
     {activeTab === "home" && (
