@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 
 export interface BudgetLimit {
   id: string;
-  user_id: string;
+  household_id: string;
   category: string;
   limit_amount: number;
   created_at: string;
@@ -20,18 +20,18 @@ export interface BudgetAlert {
 }
 
 export function useBudgetAlerts(
-  userId: string | undefined,
+  householdId: string | null,
   categorySummary: { category: string; total: number }[]
 ) {
   const [limits, setLimits] = useState<BudgetLimit[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchLimits = useCallback(async () => {
-    if (!userId) return;
+    if (!householdId) return;
     const { data, error } = await supabase
       .from("budget_limits")
       .select("*")
-      .eq("user_id", userId);
+      .eq("household_id", householdId);
 
     if (error) {
       console.error("Error fetching limits:", error);
@@ -39,7 +39,7 @@ export function useBudgetAlerts(
       setLimits(data || []);
     }
     setLoading(false);
-  }, [userId]);
+  }, [householdId]);
 
   useEffect(() => {
     fetchLimits();
@@ -47,9 +47,8 @@ export function useBudgetAlerts(
 
   const setLimit = useCallback(
     async (category: string, limitAmount: number) => {
-      if (!userId) return;
+      if (!householdId) return;
 
-      // Upsert - update if exists, insert if not
       const existing = limits.find((l) => l.category === category);
       if (existing) {
         const { error } = await supabase
@@ -66,7 +65,7 @@ export function useBudgetAlerts(
       } else {
         const { data, error } = await supabase
           .from("budget_limits")
-          .insert({ user_id: userId, category, limit_amount: limitAmount })
+          .insert({ household_id: householdId, category, limit_amount: limitAmount })
           .select()
           .single();
         if (!error && data) {
@@ -74,7 +73,7 @@ export function useBudgetAlerts(
         }
       }
     },
-    [userId, limits]
+    [householdId, limits]
   );
 
   const removeLimit = useCallback(async (id: string) => {

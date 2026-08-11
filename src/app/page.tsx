@@ -10,6 +10,7 @@ import { BudgetAlerts } from "@/components/BudgetAlerts";
 import { BottomNav } from "@/components/BottomNav";
 import { UserMenu } from "@/components/UserMenu";
 import { useAuth } from "@/hooks/useAuth";
+import { useHousehold } from "@/hooks/useHousehold";
 import { useTransactions } from "@/hooks/useTransactions";
 import { useBudgetAlerts } from "@/hooks/useBudgetAlerts";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
@@ -20,10 +21,11 @@ type Tab = "home" | "dashboard" | "alerts";
 
 export default function HomePage() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { householdId, loading: householdLoading } = useHousehold(user?.id);
   const { transactions, addTransaction, summary, categorySummary, loading } =
-    useTransactions(user?.id);
+    useTransactions(user?.id, householdId);
   const { alerts, limits, setLimit, removeLimit } = useBudgetAlerts(
-    user?.id,
+    householdId,
     categorySummary
   );
   const [activeTab, setActiveTab] = useState<Tab>("home");
@@ -44,7 +46,7 @@ export default function HomePage() {
   }
 
   // Loading state
-  if (authLoading) {
+  if (authLoading || householdLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-gray-400">Carregando...</div>
@@ -62,10 +64,7 @@ export default function HomePage() {
             Olá, {user?.email?.split("@")[0] || "usuário"}
           </p>
         </div>
-        <UserMenu
-          avatarUrl={undefined}
-          onSignOut={signOut}
-        />
+        <UserMenu avatarUrl={undefined} onSignOut={signOut} />
       </header>
 
       {/* Tab content */}

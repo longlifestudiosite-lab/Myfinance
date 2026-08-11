@@ -41,6 +41,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    // Create a personal household for the new user
+    const { data: household } = await supabaseAdmin
+      .from("households")
+      .insert({ name: "Minha Casa" })
+      .select()
+      .single();
+
+    if (household) {
+      await supabaseAdmin.from("household_members").insert({
+        household_id: household.id,
+        user_id: data.user.id,
+      });
+    }
+
     return NextResponse.json({ user: { id: data.user.id, email: data.user.email } });
   } catch {
     return NextResponse.json(

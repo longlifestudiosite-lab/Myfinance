@@ -7,6 +7,7 @@ import type { ParsedTransaction } from "@/lib/parseVoiceCommand";
 export interface Transaction {
   id: string;
   user_id: string;
+  household_id: string;
   type: "expense" | "income";
   amount: number;
   description: string;
@@ -27,17 +28,17 @@ export interface CategorySummary {
   count: number;
 }
 
-export function useTransactions(userId: string | undefined) {
+export function useTransactions(userId: string | undefined, householdId: string | null) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTransactions = useCallback(async () => {
-    if (!userId) return;
+    if (!householdId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .eq("user_id", userId)
+      .eq("household_id", householdId)
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -47,7 +48,7 @@ export function useTransactions(userId: string | undefined) {
       setTransactions(data || []);
     }
     setLoading(false);
-  }, [userId]);
+  }, [householdId]);
 
   useEffect(() => {
     fetchTransactions();
@@ -55,11 +56,12 @@ export function useTransactions(userId: string | undefined) {
 
   const addTransaction = useCallback(
     async (parsed: ParsedTransaction) => {
-      if (!userId) return;
+      if (!userId || !householdId) return;
       const { data, error } = await supabase
         .from("transactions")
         .insert({
           user_id: userId,
+          household_id: householdId,
           type: parsed.type,
           amount: parsed.amount,
           description: parsed.description,
@@ -77,7 +79,7 @@ export function useTransactions(userId: string | undefined) {
         setTransactions((prev) => [data, ...prev]);
       }
     },
-    [userId]
+    [userId, householdId]
   );
 
   const deleteTransaction = useCallback(async (id: string) => {
