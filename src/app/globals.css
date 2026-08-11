@@ -24,7 +24,6 @@
     border-radius: 1rem;
     padding: 1rem;
     background: #111827;
-    overflow: hidden;
     z-index: 0;
   }
 
@@ -59,7 +58,6 @@
   border-radius: 1rem;
   padding: 1rem;
   background: #111827;
-  overflow: hidden;
   z-index: 0;
 }
 
@@ -117,7 +115,6 @@
   padding: 1rem;
   background: linear-gradient(135deg, #064e3b, #065f46, #047857);
   border: 1px solid #10b981;
-  overflow: hidden;
   z-index: 0;
 }
 
@@ -127,7 +124,6 @@
   padding: 1rem;
   background: linear-gradient(135deg, #713f12, #854d0e, #a16207);
   border: 1px solid #eab308;
-  overflow: hidden;
   z-index: 0;
 }
 
@@ -137,7 +133,6 @@
   padding: 1rem;
   background: linear-gradient(135deg, #7f1d1d, #991b1b, #b91c1c);
   border: 1px solid #ef4444;
-  overflow: hidden;
   z-index: 0;
 }
 
