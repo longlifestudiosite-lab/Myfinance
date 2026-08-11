@@ -182,17 +182,17 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       {/* Category chart */}
       {categoryList.length > 0 && (
         <div className="card-glow-red">
-          <h3 className="text-sm font-semibold text-gray-200 mb-4">
+          <h3 className="text-base font-bold text-white mb-4">
             Despesas por categoria
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {categoryList.map((cat) => (
               <div key={cat.category}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium text-gray-300 capitalize">
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="text-sm font-medium text-white capitalize">
                     {cat.category} ({cat.count})
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-sm font-medium text-white">
                     {formatCurrency(cat.total)} ({cat.percentage.toFixed(0)}%)
                   </span>
                 </div>
