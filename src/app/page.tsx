@@ -10,6 +10,7 @@ import { BudgetAlerts } from "@/components/BudgetAlerts";
 import { BottomNav } from "@/components/BottomNav";
 import { UserMenu } from "@/components/UserMenu";
 import { AddTransactionForm } from "@/components/AddTransactionForm";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { useAuth } from "@/hooks/useAuth";
 import { useHousehold } from "@/hooks/useHousehold";
 import { useTransactions } from "@/hooks/useTransactions";
@@ -36,6 +37,7 @@ export default function HomePage() {
     summary,
     categorySummary,
     loading,
+    refetch,
   } = useTransactions(user?.id, householdId);
   const { alerts, limits, setLimit, removeLimit } = useBudgetAlerts(
     householdId,
@@ -70,6 +72,7 @@ export default function HomePage() {
   }
 
   return (
+    <PullToRefresh onRefresh={refetch}>
     <main className="max-w-md mx-auto px-4 py-6 pb-24 min-h-screen">
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
@@ -202,5 +205,6 @@ export default function HomePage() {
         />
       )}
     </main>
+    </PullToRefresh>
   );
 }
