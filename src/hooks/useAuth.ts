@@ -28,8 +28,30 @@ export function useAuth() {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
-    return { error };
+    // Use our API route that creates user with email already confirmed
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return { error: { message: data.error } };
+    }
+
+    // Auto-login after signup
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      return { error: { message: signInError.message } };
+    }
+
+    return { error: null };
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
