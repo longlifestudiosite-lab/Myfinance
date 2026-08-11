@@ -19,31 +19,111 @@
     @apply bg-gray-900 rounded-2xl p-4 border border-gray-800;
   }
 
-  .card-glow-green {
-    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-emerald-500 border-t border-r border-b border-gray-800;
-  }
-
-  .card-glow-red {
-    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-red-500 border-t border-r border-b border-gray-800;
-  }
-
-  .card-glow-purple {
-    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-purple-500 border-t border-r border-b border-gray-800;
-  }
-
-  .card-glow-yellow {
-    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-yellow-500 border-t border-r border-b border-gray-800;
-  }
-
-  .card-glow-blue {
-    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-blue-500 border-t border-r border-b border-gray-800;
-  }
-
   .card-bordered {
-    @apply bg-gray-900 rounded-2xl p-4 border-2 border-emerald-500/30;
+    position: relative;
+    border-radius: 1rem;
+    padding: 1rem;
+    background: #111827;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .card-bordered::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border-radius: 1.1rem;
+    background: conic-gradient(from var(--border-angle), transparent 40%, #10b981 50%, #34d399 55%, transparent 65%);
+    animation: spin-border 4s linear infinite;
+    z-index: -2;
+  }
+
+  .card-bordered::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: 0.85rem;
+    background: #111827;
+    z-index: -1;
   }
 }
 
+/* ===== ANIMATED BORDER CARDS ===== */
+
+.card-glow-green,
+.card-glow-red,
+.card-glow-purple,
+.card-glow-yellow,
+.card-glow-blue {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: #111827;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.card-glow-green::before,
+.card-glow-red::before,
+.card-glow-purple::before,
+.card-glow-yellow::before,
+.card-glow-blue::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 1.1rem;
+  animation: spin-border 4s linear infinite;
+  z-index: -2;
+}
+
+.card-glow-green::after,
+.card-glow-red::after,
+.card-glow-purple::after,
+.card-glow-yellow::after,
+.card-glow-blue::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 0.85rem;
+  background: #111827;
+  z-index: -1;
+}
+
+/* Color variants */
+.card-glow-green::before {
+  background: conic-gradient(from var(--border-angle), transparent 40%, #10b981 50%, #34d399 55%, transparent 65%);
+}
+
+.card-glow-red::before {
+  background: conic-gradient(from var(--border-angle), transparent 40%, #ef4444 50%, #f87171 55%, transparent 65%);
+}
+
+.card-glow-purple::before {
+  background: conic-gradient(from var(--border-angle), transparent 40%, #a855f7 50%, #c084fc 55%, transparent 65%);
+}
+
+.card-glow-yellow::before {
+  background: conic-gradient(from var(--border-angle), transparent 40%, #eab308 50%, #facc15 55%, transparent 65%);
+}
+
+.card-glow-blue::before {
+  background: conic-gradient(from var(--border-angle), transparent 40%, #3b82f6 50%, #60a5fa 55%, transparent 65%);
+}
+
+/* The animation using @property for smooth rotation */
+@property --border-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spin-border {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+/* Slide up animation for modals */
 @keyframes slide-up {
   from {
     transform: translateY(100%);

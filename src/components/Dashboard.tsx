@@ -160,7 +160,7 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       </div>
 
       {/* Summary cards */}
-      <div className="card-bordered">
+      <div className="card-glow-green">
         <p className="text-xs text-gray-500 mb-1">{periodLabel}</p>
         <p className={`text-2xl font-bold ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
           {formatCurrency(balance)}
