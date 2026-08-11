@@ -41,10 +41,19 @@ interface TransactionListProps {
   transactions: Transaction[];
   loading: boolean;
   onEdit: (id: string, updates: { description: string; amount: number; category: string }) => void;
+  onEditInstallment: (baseDescription: string, updates: {
+    description: string;
+    amount: number;
+    category: string;
+    installments_total: number;
+    start_month: number;
+    start_year: number;
+  }) => void;
   onDelete: (id: string) => void;
+  onDeleteAllInstallments: (baseDescription: string) => void;
 }
 
-export function TransactionList({ transactions, loading, onEdit, onDelete }: TransactionListProps) {
+export function TransactionList({ transactions, loading, onEdit, onEditInstallment, onDelete, onDeleteAllInstallments }: TransactionListProps) {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [swipedId, setSwipedId] = useState<string | null>(null);
 
@@ -146,6 +155,9 @@ export function TransactionList({ transactions, loading, onEdit, onDelete }: Tra
         <EditTransactionModal
           transaction={editingTransaction}
           onSave={onEdit}
+          onSaveInstallment={onEditInstallment}
+          onDelete={onDelete}
+          onDeleteAllInstallments={onDeleteAllInstallments}
           onClose={() => setEditingTransaction(null)}
         />
       )}

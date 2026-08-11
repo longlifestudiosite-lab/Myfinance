@@ -28,7 +28,9 @@ export default function HomePage() {
     addTransaction,
     addManualTransaction,
     editTransaction,
+    editInstallment,
     deleteTransaction,
+    deleteAllInstallments,
     summary,
     categorySummary,
     loading,
@@ -119,7 +121,9 @@ export default function HomePage() {
               transactions={transactions}
               loading={loading}
               onEdit={editTransaction}
+              onEditInstallment={editInstallment}
               onDelete={deleteTransaction}
+              onDeleteAllInstallments={deleteAllInstallments}
             />
           </section>
         </>

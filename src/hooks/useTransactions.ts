@@ -197,6 +197,72 @@ export function useTransactions(userId: string | undefined, householdId: string 
     []
   );
 
+  const editInstallment = useCallback(
+    async (baseDescription: string, updates: {
+      description: string;
+      amount: number;
+      category: string;
+      installments_total: number;
+      start_month: number;
+      start_year: number;
+    }) => {
+      if (!userId || !householdId) return;
+
+      // Find and delete all existing installments with this base description
+      const matchingIds = transactions
+        .filter((t) => t.recurrence === "installment" && t.description.replace(/\s*\(\d+\/\d+\)\s*$/, "") === baseDescription)
+        .map((t) => t.id);
+
+      if (matchingIds.length > 0) {
+        await supabase.from("transactions").delete().in("id", matchingIds);
+      }
+
+      // Recreate with new params
+      const entries = [];
+      for (let i = 1; i <= updates.installments_total; i++) {
+        const month = ((updates.start_month - 1 + (i - 1)) % 12) + 1;
+        const year = updates.start_year + Math.floor((updates.start_month - 1 + (i - 1)) / 12);
+        entries.push({
+          user_id: userId,
+          household_id: householdId,
+          type: transactions.find((t) => t.description.includes(baseDescription))?.type || "expense",
+          amount: updates.amount,
+          description: `${updates.description} (${i}/${updates.installments_total})`,
+          category: updates.category,
+          recurrence: "installment" as const,
+          installments_total: updates.installments_total,
+          installment_current: i,
+          start_month: month,
+          start_year: year,
+          created_at: new Date(year, month - 1, 1).toISOString(),
+        });
+      }
+
+      const { data } = await supabase.from("transactions").insert(entries).select();
+
+      // Update local state
+      setTransactions((prev) => {
+        const filtered = prev.filter((t) => !matchingIds.includes(t.id));
+        return [...(data || []).reverse(), ...filtered];
+      });
+    },
+    [userId, householdId, transactions]
+  );
+
+  const deleteAllInstallments = useCallback(
+    async (baseDescription: string) => {
+      const matchingIds = transactions
+        .filter((t) => t.recurrence === "installment" && t.description.replace(/\s*\(\d+\/\d+\)\s*$/, "") === baseDescription)
+        .map((t) => t.id);
+
+      if (matchingIds.length > 0) {
+        await supabase.from("transactions").delete().in("id", matchingIds);
+        setTransactions((prev) => prev.filter((t) => !matchingIds.includes(t.id)));
+      }
+    },
+    [transactions]
+  );
+
   const deleteTransaction = useCallback(async (id: string) => {
     const { error } = await supabase.from("transactions").delete().eq("id", id);
     if (!error) {
@@ -246,7 +312,9 @@ export function useTransactions(userId: string | undefined, householdId: string 
     addTransaction,
     addManualTransaction,
     editTransaction,
+    editInstallment,
     deleteTransaction,
+    deleteAllInstallments,
     summary,
     categorySummary,
     loading,
