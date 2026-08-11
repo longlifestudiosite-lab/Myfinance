@@ -225,7 +225,7 @@ export function useTransactions(userId: string | undefined, householdId: string 
   }, [transactions]);
 
   const editTransaction = useCallback(
-    async (id: string, updates: { description: string; amount: number; category: string }) => {
+    async (id: string, updates: { description: string; amount: number; category: string; due_day?: number }) => {
       const { error } = await supabase
         .from("transactions")
         .update(updates)

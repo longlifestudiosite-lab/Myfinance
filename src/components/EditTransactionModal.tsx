@@ -6,7 +6,7 @@ import type { Transaction } from "@/hooks/useTransactions";
 
 interface EditTransactionModalProps {
   transaction: Transaction;
-  onSave: (id: string, updates: { description: string; amount: number; category: string }) => void;
+  onSave: (id: string, updates: { description: string; amount: number; category: string; due_day?: number }) => void;
   onSaveInstallment: (baseDescription: string, updates: {
     description: string;
     amount: number;
@@ -44,6 +44,7 @@ export function EditTransactionModal({
   const [description, setDescription] = useState(baseDescription);
   const [amount, setAmount] = useState(transaction.amount.toString());
   const [category, setCategory] = useState(transaction.category);
+  const [dueDay, setDueDay] = useState((transaction.due_day || 10).toString());
   const [installments, setInstallments] = useState(
     (transaction.installments_total || 10).toString()
   );
@@ -73,6 +74,7 @@ export function EditTransactionModal({
         description: description.trim(),
         amount: numAmount,
         category,
+        due_day: parseInt(dueDay) || 10,
       });
     }
     onClose();
@@ -176,6 +178,25 @@ export function EditTransactionModal({
                 </div>
               </div>
             </>
+          )}
+
+          {/* Due day - for fixed transactions */}
+          {isFixed && (
+            <div>
+              <label htmlFor="edit-dueday" className="text-sm font-medium text-gray-700">
+                Dia de vencimento
+              </label>
+              <input
+                id="edit-dueday"
+                type="number"
+                value={dueDay}
+                onChange={(e) => setDueDay(e.target.value)}
+                required
+                min="1"
+                max="31"
+                className="mt-1 w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+            </div>
           )}
 
           {/* Category */}
