@@ -167,12 +167,12 @@ export function Dashboard({ allTransactions }: DashboardProps) {
           <div>
             <p className="text-xs text-gray-400">Entradas previstas</p>
             <p className="text-sm font-semibold text-green-600">{formatCurrency(totalIncome)}</p>
-            <p className="text-[10px] text-green-500">Confirmado: {formatCurrency(confirmedIncome)}</p>
+            <p className="text-xs text-green-500">Confirmado: {formatCurrency(confirmedIncome)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-400">Saídas previstas</p>
             <p className="text-sm font-semibold text-red-600">{formatCurrency(totalExpenses)}</p>
-            <p className="text-[10px] text-red-500">Confirmado: {formatCurrency(confirmedExpenses)}</p>
+            <p className="text-xs text-red-500">Confirmado: {formatCurrency(confirmedExpenses)}</p>
           </div>
         </div>
       </div>
