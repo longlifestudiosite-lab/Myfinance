@@ -106,7 +106,7 @@ export function BudgetAlerts({
                   className="flex items-center justify-between"
                 >
                   <div>
-                    <span className="text-sm capitalize text-gray-700">
+                    <span className="text-sm capitalize text-gray-100">
                       {limit.category}
                     </span>
                     <span className="text-xs text-gray-400 ml-2">
@@ -118,10 +118,10 @@ export function BudgetAlerts({
                       <span
                         className={`text-xs font-medium ${
                           alert.exceeded
-                            ? "text-red-600"
+                            ? "text-red-400"
                             : alert.percentage >= 80
-                            ? "text-yellow-600"
-                            : "text-green-600"
+                            ? "text-yellow-400"
+                            : "text-emerald-400"
                         }`}
                       >
                         {alert.percentage.toFixed(0)}%
@@ -148,7 +148,7 @@ export function BudgetAlerts({
           <select
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {CATEGORIES.map((cat) => (
               <option key={cat} value={cat}>
@@ -161,7 +161,7 @@ export function BudgetAlerts({
             value={newAmount}
             onChange={(e) => setNewAmount(e.target.value)}
             placeholder="Limite em R$"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             min="1"
             step="0.01"
           />
@@ -172,7 +172,7 @@ export function BudgetAlerts({
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700"
+              className="px-4 py-2 text-sm text-gray-400 hover:text-gray-200"
             >
               Cancelar
             </button>
@@ -181,7 +181,7 @@ export function BudgetAlerts({
       ) : (
         <button
           onClick={() => setShowForm(true)}
-          className="w-full card flex items-center justify-center gap-2 text-sm text-primary-600 hover:bg-primary-50 transition-colors"
+          className="w-full card flex items-center justify-center gap-2 text-sm text-emerald-400 hover:bg-gray-800 transition-colors"
         >
           <Plus className="w-4 h-4" />
           Adicionar limite
