@@ -35,6 +35,8 @@ export function Dashboard({ allTransactions }: DashboardProps) {
   // Filter transactions by period
   const filtered = allTransactions.filter((t) => {
     if (period === "daily") {
+      // Daily: only "once" transactions from today
+      if (t.recurrence !== "once") return false;
       const d = new Date(t.created_at);
       return (
         d.getDate() === now.getDate() &&
@@ -43,21 +45,18 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       );
     }
     if (period === "weekly") {
+      // Weekly: "once" transactions from this week only
+      if (t.recurrence !== "once") return false;
       const d = new Date(t.created_at);
       const startOfWeek = new Date(now);
       startOfWeek.setDate(now.getDate() - now.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(startOfWeek.getDate() + 7);
-      // Fixed transactions count in weekly
-      if (t.recurrence === "fixed") return true;
-      // Installments for current month count in weekly
-      if (t.recurrence === "installment" && t.start_month && t.start_year) {
-        return t.start_month === now.getMonth() + 1 && t.start_year === now.getFullYear();
-      }
       return d >= startOfWeek && d < endOfWeek;
     }
     if (period === "monthly") {
+      // Monthly: fixed + installments for this month + once from this month
       if (t.recurrence === "fixed") return true;
       if (t.recurrence === "installment" && t.start_month && t.start_year) {
         return t.start_month === now.getMonth() + 1 && t.start_year === now.getFullYear();
@@ -66,6 +65,7 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }
     if (period === "yearly") {
+      // Yearly: fixed (x12 handled below) + all installments for this year + once from this year
       if (t.recurrence === "fixed") return true;
       if (t.recurrence === "installment" && t.start_year) {
         return t.start_year === now.getFullYear();
@@ -77,21 +77,27 @@ export function Dashboard({ allTransactions }: DashboardProps) {
   });
 
   // Calculate totals
+  const getAmount = (t: Transaction) => {
+    // In yearly view, fixed transactions count as 12 months
+    if (period === "yearly" && t.recurrence === "fixed") return t.amount * 12;
+    return t.amount;
+  };
+
   const totalIncome = filtered
     .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getAmount(t), 0);
 
   const totalExpenses = filtered
     .filter((t) => t.type === "expense")
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getAmount(t), 0);
 
   const confirmedIncome = filtered
     .filter((t) => t.type === "income" && (t.status === "received" || t.recurrence === "once"))
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getAmount(t), 0);
 
   const confirmedExpenses = filtered
     .filter((t) => t.type === "expense" && (t.status === "paid" || t.recurrence === "once"))
-    .reduce((sum, t) => sum + t.amount, 0);
+    .reduce((sum, t) => sum + getAmount(t), 0);
 
   const balance = totalIncome - totalExpenses;
 
@@ -103,10 +109,11 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       if (!expensesByCategory[t.category]) {
         expensesByCategory[t.category] = { total: 0, confirmed: 0, count: 0 };
       }
-      expensesByCategory[t.category].total += t.amount;
+      const amt = getAmount(t);
+      expensesByCategory[t.category].total += amt;
       expensesByCategory[t.category].count += 1;
       if (t.status === "paid" || t.recurrence === "once") {
-        expensesByCategory[t.category].confirmed += t.amount;
+        expensesByCategory[t.category].confirmed += amt;
       }
     });
 
