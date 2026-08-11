@@ -14,6 +14,7 @@ interface EditTransactionModalProps {
     installments_total: number;
     start_month: number;
     start_year: number;
+    due_day?: number;
   }) => void;
   onDelete: (id: string) => void;
   onDeleteAllInstallments: (baseDescription: string) => void;
@@ -68,6 +69,7 @@ export function EditTransactionModal({
         installments_total: parseInt(installments),
         start_month: startMonth,
         start_year: startYear,
+        due_day: parseInt(dueDay) || 10,
       });
     } else {
       onSave(transaction.id, {
@@ -180,8 +182,8 @@ export function EditTransactionModal({
             </>
           )}
 
-          {/* Due day - for fixed transactions */}
-          {isFixed && (
+          {/* Due day - for fixed and installment transactions */}
+          {(isFixed || isInstallment) && (
             <div>
               <label htmlFor="edit-dueday" className="text-sm font-medium text-gray-700">
                 Dia de vencimento
