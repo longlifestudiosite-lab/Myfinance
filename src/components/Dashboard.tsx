@@ -138,64 +138,65 @@ export function Dashboard({ allTransactions }: DashboardProps) {
   return (
     <div className="space-y-4">
       {/* Period selector */}
-      <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-xl">
-        {(["daily", "weekly", "monthly", "yearly"] as Period[]).map((p) => (
-          <button
-            key={p}
-            onClick={() => setPeriod(p)}
-            className={`py-2 text-xs font-medium rounded-lg transition-colors ${
-              period === p
-                ? "bg-white text-primary-700 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            {p === "daily" && "Dia"}
-            {p === "weekly" && "Semana"}
-            {p === "monthly" && "Mês"}
-            {p === "yearly" && "Ano"}
-          </button>
-        ))}
+      <div className="sticky top-12 z-10 bg-gray-950 pb-3">
+        <div className="grid grid-cols-4 gap-1 p-1 bg-gray-900 border border-gray-800 rounded-xl">
+          {(["daily", "weekly", "monthly", "yearly"] as Period[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`py-2 text-xs font-medium rounded-lg transition-colors ${
+                period === p
+                  ? "bg-gray-800 text-emerald-400 shadow-sm"
+                  : "text-gray-500 hover:text-gray-300"
+              }`}
+            >
+              {p === "daily" && "Dia"}
+              {p === "weekly" && "Semana"}
+              {p === "monthly" && "Mês"}
+              {p === "yearly" && "Ano"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Summary cards */}
-      <div className="card">
+      <div className="card-bordered">
         <p className="text-xs text-gray-500 mb-1">{periodLabel}</p>
-        <p className={`text-2xl font-bold ${balance >= 0 ? "text-primary-700" : "text-red-600"}`}>
+        <p className={`text-2xl font-bold ${balance >= 0 ? "text-emerald-400" : "text-red-400"}`}>
           {formatCurrency(balance)}
         </p>
         <div className="flex gap-4 mt-3">
           <div>
-            <p className="text-xs text-gray-400">Entradas previstas</p>
-            <p className="text-sm font-semibold text-green-600">{formatCurrency(totalIncome)}</p>
-            <p className="text-xs text-green-500">Confirmado: {formatCurrency(confirmedIncome)}</p>
+            <p className="text-xs text-gray-500">Entradas previstas</p>
+            <p className="text-sm font-semibold text-emerald-400">{formatCurrency(totalIncome)}</p>
+            <p className="text-xs text-emerald-600">Confirmado: {formatCurrency(confirmedIncome)}</p>
           </div>
           <div>
-            <p className="text-xs text-gray-400">Saídas previstas</p>
-            <p className="text-sm font-semibold text-red-600">{formatCurrency(totalExpenses)}</p>
-            <p className="text-xs text-red-500">Confirmado: {formatCurrency(confirmedExpenses)}</p>
+            <p className="text-xs text-gray-500">Saídas previstas</p>
+            <p className="text-sm font-semibold text-red-400">{formatCurrency(totalExpenses)}</p>
+            <p className="text-xs text-red-600">Confirmado: {formatCurrency(confirmedExpenses)}</p>
           </div>
         </div>
       </div>
 
       {/* Category chart */}
       {categoryList.length > 0 && (
-        <div className="card">
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+        <div className="card-glow-red">
+          <h3 className="text-sm font-semibold text-gray-200 mb-4">
             Despesas por categoria
           </h3>
           <div className="space-y-3">
             {categoryList.map((cat) => (
               <div key={cat.category}>
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium text-gray-600 capitalize">
+                  <span className="text-xs font-medium text-gray-300 capitalize">
                     {cat.category} ({cat.count})
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-400">
                     {formatCurrency(cat.total)} ({cat.percentage.toFixed(0)}%)
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 rounded-full h-3 relative overflow-hidden">
-                  {/* Total (lighter) */}
+                <div className="w-full bg-gray-800 rounded-full h-3 relative overflow-hidden">
                   <div
                     className="absolute inset-y-0 left-0 rounded-full opacity-40"
                     style={{
@@ -203,7 +204,6 @@ export function Dashboard({ allTransactions }: DashboardProps) {
                       backgroundColor: CATEGORY_COLORS[cat.category] || CATEGORY_COLORS["outros"],
                     }}
                   />
-                  {/* Confirmed (solid) */}
                   <div
                     className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
                     style={{
@@ -215,7 +215,7 @@ export function Dashboard({ allTransactions }: DashboardProps) {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-gray-400 mt-3">
+          <p className="text-[11px] text-gray-500 mt-3">
             Barra sólida = confirmado | Barra clara = previsto
           </p>
         </div>
@@ -223,39 +223,39 @@ export function Dashboard({ allTransactions }: DashboardProps) {
 
       {/* Monthly breakdown for yearly view */}
       {period === "yearly" && monthlyBreakdown.length > 0 && (
-        <div className="card">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        <div className="card-glow-blue">
+          <h3 className="text-sm font-semibold text-gray-200 mb-3">
             Visão mensal ({now.getFullYear()})
           </h3>
           <div className="space-y-2">
             {monthlyBreakdown.map((m) => (
               <div key={m.month} className="flex items-center gap-2 text-xs">
-                <span className="w-8 text-gray-500 font-medium">{m.label}</span>
+                <span className="w-8 text-gray-400 font-medium">{m.label}</span>
                 <div className="flex-1 flex gap-1 h-4">
                   {m.income > 0 && (
                     <div
-                      className="bg-green-400 rounded-sm h-full"
+                      className="bg-emerald-500 rounded-sm h-full"
                       style={{ width: `${(m.income / Math.max(...monthlyBreakdown.map(x => Math.max(x.income, x.expenses)))) * 100}%` }}
                       title={`Entrada: ${formatCurrency(m.income)}`}
                     />
                   )}
                   {m.expenses > 0 && (
                     <div
-                      className="bg-red-400 rounded-sm h-full"
+                      className="bg-red-500 rounded-sm h-full"
                       style={{ width: `${(m.expenses / Math.max(...monthlyBreakdown.map(x => Math.max(x.income, x.expenses)))) * 100}%` }}
                       title={`Saída: ${formatCurrency(m.expenses)}`}
                     />
                   )}
                 </div>
-                <span className={`w-20 text-right font-medium ${m.income - m.expenses >= 0 ? "text-green-600" : "text-red-600"}`}>
+                <span className={`w-20 text-right font-medium ${m.income - m.expenses >= 0 ? "text-emerald-400" : "text-red-400"}`}>
                   {formatCurrency(m.income - m.expenses)}
                 </span>
               </div>
             ))}
           </div>
-          <div className="flex gap-4 mt-3 text-[10px] text-gray-400">
-            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-green-400 rounded-sm inline-block" /> Entradas</span>
-            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-red-400 rounded-sm inline-block" /> Saídas</span>
+          <div className="flex gap-4 mt-3 text-[11px] text-gray-500">
+            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-emerald-500 rounded-sm inline-block" /> Entradas</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-red-500 rounded-sm inline-block" /> Saídas</span>
           </div>
         </div>
       )}
@@ -263,7 +263,7 @@ export function Dashboard({ allTransactions }: DashboardProps) {
       {/* Empty state */}
       {categoryList.length === 0 && (
         <div className="card text-center py-6">
-          <p className="text-gray-400 text-sm">
+          <p className="text-gray-500 text-sm">
             Sem dados para {periodLabel.toLowerCase()}.
           </p>
         </div>

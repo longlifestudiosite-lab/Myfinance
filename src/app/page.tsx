@@ -113,39 +113,41 @@ export default function HomePage() {
           )}
 
           <section className="mt-6">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold text-gray-100">Este mês</h2>
-              <button
-                onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-400 bg-emerald-950 border border-emerald-800 rounded-lg hover:bg-emerald-900 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Adicionar
-              </button>
-            </div>
+            <div className="sticky top-0 z-10 bg-gray-950 pb-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-100">Este mês</h2>
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-400 bg-emerald-950 border border-emerald-800 rounded-lg hover:bg-emerald-900 transition-colors"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Adicionar
+                </button>
+              </div>
 
-            {/* Sub-tabs: Saídas / Entradas */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-900 border border-gray-800 rounded-xl mb-4">
-              <button
-                onClick={() => setHomeSubTab("expenses")}
-                className={`py-2 text-sm font-medium rounded-lg transition-colors ${
-                  homeSubTab === "expenses"
-                    ? "bg-gray-800 text-red-400 shadow-sm"
-                    : "text-gray-500"
-                }`}
-              >
-                💸 Saídas ({transactions.filter(t => t.type === "expense").length})
-              </button>
-              <button
-                onClick={() => setHomeSubTab("income")}
-                className={`py-2 text-sm font-medium rounded-lg transition-colors ${
-                  homeSubTab === "income"
-                    ? "bg-gray-800 text-emerald-400 shadow-sm"
-                    : "text-gray-500"
-                }`}
-              >
-                💰 Entradas ({transactions.filter(t => t.type === "income").length})
-              </button>
+              {/* Sub-tabs: Saídas / Entradas */}
+              <div className="grid grid-cols-2 gap-2 p-1 bg-gray-900 border border-gray-800 rounded-xl mt-3">
+                <button
+                  onClick={() => setHomeSubTab("expenses")}
+                  className={`py-2 text-sm font-medium rounded-lg transition-colors ${
+                    homeSubTab === "expenses"
+                      ? "bg-gray-800 text-red-400 shadow-sm"
+                      : "text-gray-500"
+                  }`}
+                >
+                  💸 Saídas ({transactions.filter(t => t.type === "expense").length})
+                </button>
+                <button
+                  onClick={() => setHomeSubTab("income")}
+                  className={`py-2 text-sm font-medium rounded-lg transition-colors ${
+                    homeSubTab === "income"
+                      ? "bg-gray-800 text-emerald-400 shadow-sm"
+                      : "text-gray-500"
+                  }`}
+                >
+                  💰 Entradas ({transactions.filter(t => t.type === "income").length})
+                </button>
+              </div>
             </div>
 
             <TransactionList
@@ -165,14 +167,18 @@ export default function HomePage() {
 
       {activeTab === "dashboard" && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Dashboard</h2>
+          <div className="sticky top-0 z-10 bg-gray-950 pb-3">
+            <h2 className="text-lg font-semibold text-gray-100 mb-3">Dashboard</h2>
+          </div>
           <Dashboard allTransactions={allTransactions} />
         </section>
       )}
 
       {activeTab === "alerts" && (
         <section>
-          <h2 className="text-lg font-semibold mb-3">Limites e Alertas</h2>
+          <div className="sticky top-0 z-10 bg-gray-950 pb-3">
+            <h2 className="text-lg font-semibold text-gray-100">Limites e Alertas</h2>
+          </div>
           <BudgetAlerts
             alerts={alerts}
             onSetLimit={setLimit}
