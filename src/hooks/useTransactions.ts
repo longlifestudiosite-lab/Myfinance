@@ -6,6 +6,7 @@ import type { ParsedTransaction } from "@/lib/parseVoiceCommand";
 
 export interface Transaction {
   id: string;
+  user_id: string;
   type: "expense" | "income";
   amount: number;
   description: string;
@@ -19,17 +20,26 @@ export interface Summary {
   balance: number;
 }
 
-export function useTransactions() {
+export interface CategorySummary {
+  category: string;
+  total: number;
+  percentage: number;
+  count: number;
+}
+
+export function useTransactions(userId: string | undefined) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchTransactions = useCallback(async () => {
+    if (!userId) return;
     setLoading(true);
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
+      .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(50);
+      .limit(100);
 
     if (error) {
       console.error("Error fetching transactions:", error);
@@ -37,7 +47,7 @@ export function useTransactions() {
       setTransactions(data || []);
     }
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     fetchTransactions();
@@ -45,9 +55,11 @@ export function useTransactions() {
 
   const addTransaction = useCallback(
     async (parsed: ParsedTransaction) => {
+      if (!userId) return;
       const { data, error } = await supabase
         .from("transactions")
         .insert({
+          user_id: userId,
           type: parsed.type,
           amount: parsed.amount,
           description: parsed.description,
@@ -65,8 +77,15 @@ export function useTransactions() {
         setTransactions((prev) => [data, ...prev]);
       }
     },
-    []
+    [userId]
   );
+
+  const deleteTransaction = useCallback(async (id: string) => {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (!error) {
+      setTransactions((prev) => prev.filter((t) => t.id !== id));
+    }
+  }, []);
 
   const summary: Summary = transactions.reduce(
     (acc, t) => {
@@ -81,5 +100,36 @@ export function useTransactions() {
     { income: 0, expenses: 0, balance: 0 }
   );
 
-  return { transactions, addTransaction, summary, loading, refetch: fetchTransactions };
+  const categorySummary: CategorySummary[] = (() => {
+    const expenses = transactions.filter((t) => t.type === "expense");
+    const totalExpenses = expenses.reduce((sum, t) => sum + t.amount, 0);
+    const grouped: Record<string, { total: number; count: number }> = {};
+
+    expenses.forEach((t) => {
+      if (!grouped[t.category]) {
+        grouped[t.category] = { total: 0, count: 0 };
+      }
+      grouped[t.category].total += t.amount;
+      grouped[t.category].count += 1;
+    });
+
+    return Object.entries(grouped)
+      .map(([category, data]) => ({
+        category,
+        total: data.total,
+        count: data.count,
+        percentage: totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0,
+      }))
+      .sort((a, b) => b.total - a.total);
+  })();
+
+  return {
+    transactions,
+    addTransaction,
+    deleteTransaction,
+    summary,
+    categorySummary,
+    loading,
+    refetch: fetchTransactions,
+  };
 }
