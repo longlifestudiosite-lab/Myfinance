@@ -42,6 +42,7 @@ export default function HomePage() {
     categorySummary
   );
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [homeSubTab, setHomeSubTab] = useState<"expenses" | "income">("expenses");
   const [showAddForm, setShowAddForm] = useState(false);
 
   const { isListening, transcript, startListening, stopListening } =
@@ -119,8 +120,35 @@ export default function HomePage() {
                 Adicionar
               </button>
             </div>
+
+            {/* Sub-tabs: Saídas / Entradas */}
+            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+              <button
+                onClick={() => setHomeSubTab("expenses")}
+                className={`py-2 text-sm font-medium rounded-lg transition-colors ${
+                  homeSubTab === "expenses"
+                    ? "bg-white text-red-600 shadow-sm"
+                    : "text-gray-500"
+                }`}
+              >
+                💸 Saídas ({transactions.filter(t => t.type === "expense").length})
+              </button>
+              <button
+                onClick={() => setHomeSubTab("income")}
+                className={`py-2 text-sm font-medium rounded-lg transition-colors ${
+                  homeSubTab === "income"
+                    ? "bg-white text-green-600 shadow-sm"
+                    : "text-gray-500"
+                }`}
+              >
+                💰 Entradas ({transactions.filter(t => t.type === "income").length})
+              </button>
+            </div>
+
             <TransactionList
-              transactions={transactions}
+              transactions={transactions.filter(t =>
+                homeSubTab === "expenses" ? t.type === "expense" : t.type === "income"
+              )}
               loading={loading}
               onEdit={editTransaction}
               onEditInstallment={editInstallment}
