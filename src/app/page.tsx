@@ -25,6 +25,7 @@ export default function HomePage() {
   const { householdId, loading: householdLoading } = useHousehold(user?.id);
   const {
     transactions,
+    allTransactions,
     addTransaction,
     addManualTransaction,
     editTransaction,
@@ -132,16 +133,10 @@ export default function HomePage() {
       )}
 
       {activeTab === "dashboard" && (
-        <>
-          <BalanceSummary summary={summary} loading={loading} />
-          <section className="mt-6">
-            <h2 className="text-lg font-semibold mb-3">Dashboard</h2>
-            <Dashboard
-              categorySummary={categorySummary}
-              totalExpenses={summary.expenses}
-            />
-          </section>
-        </>
+        <section>
+          <h2 className="text-lg font-semibold mb-3">Dashboard</h2>
+          <Dashboard allTransactions={allTransactions} />
+        </section>
       )}
 
       {activeTab === "alerts" && (

@@ -1,6 +1,9 @@
 "use client";
 
-import type { CategorySummary } from "@/hooks/useTransactions";
+import { useState } from "react";
+import type { Transaction } from "@/hooks/useTransactions";
+
+type Period = "daily" | "weekly" | "monthly" | "yearly";
 
 const CATEGORY_COLORS: Record<string, string> = {
   alimentação: "#ef4444",
@@ -10,81 +13,284 @@ const CATEGORY_COLORS: Record<string, string> = {
   educação: "#3b82f6",
   lazer: "#8b5cf6",
   vestuário: "#ec4899",
+  assinaturas: "#6366f1",
   salário: "#10b981",
+  freelance: "#14b8a6",
+  investimentos: "#0ea5e9",
   outros: "#6b7280",
 };
 
 function formatCurrency(value: number): string {
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
 interface DashboardProps {
-  categorySummary: CategorySummary[];
-  totalExpenses: number;
+  allTransactions: Transaction[];
 }
 
-export function Dashboard({ categorySummary, totalExpenses }: DashboardProps) {
-  if (categorySummary.length === 0) {
-    return (
-      <div className="card text-center py-6">
-        <p className="text-gray-400 text-sm">
-          Ainda sem dados para o dashboard. Adicione transações!
-        </p>
-      </div>
-    );
-  }
+export function Dashboard({ allTransactions }: DashboardProps) {
+  const [period, setPeriod] = useState<Period>("monthly");
+  const now = new Date();
+
+  // Filter transactions by period
+  const filtered = allTransactions.filter((t) => {
+    if (period === "daily") {
+      const d = new Date(t.created_at);
+      return (
+        d.getDate() === now.getDate() &&
+        d.getMonth() === now.getMonth() &&
+        d.getFullYear() === now.getFullYear()
+      );
+    }
+    if (period === "weekly") {
+      const d = new Date(t.created_at);
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 7);
+      // Fixed transactions count in weekly
+      if (t.recurrence === "fixed") return true;
+      // Installments for current month count in weekly
+      if (t.recurrence === "installment" && t.start_month && t.start_year) {
+        return t.start_month === now.getMonth() + 1 && t.start_year === now.getFullYear();
+      }
+      return d >= startOfWeek && d < endOfWeek;
+    }
+    if (period === "monthly") {
+      if (t.recurrence === "fixed") return true;
+      if (t.recurrence === "installment" && t.start_month && t.start_year) {
+        return t.start_month === now.getMonth() + 1 && t.start_year === now.getFullYear();
+      }
+      const d = new Date(t.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }
+    if (period === "yearly") {
+      if (t.recurrence === "fixed") return true;
+      if (t.recurrence === "installment" && t.start_year) {
+        return t.start_year === now.getFullYear();
+      }
+      const d = new Date(t.created_at);
+      return d.getFullYear() === now.getFullYear();
+    }
+    return true;
+  });
+
+  // Calculate totals
+  const totalIncome = filtered
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpenses = filtered
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const confirmedIncome = filtered
+    .filter((t) => t.type === "income" && (t.status === "received" || t.recurrence === "once"))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const confirmedExpenses = filtered
+    .filter((t) => t.type === "expense" && (t.status === "paid" || t.recurrence === "once"))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const balance = totalIncome - totalExpenses;
+
+  // Category breakdown for expenses
+  const expensesByCategory: Record<string, { total: number; confirmed: number; count: number }> = {};
+  filtered
+    .filter((t) => t.type === "expense")
+    .forEach((t) => {
+      if (!expensesByCategory[t.category]) {
+        expensesByCategory[t.category] = { total: 0, confirmed: 0, count: 0 };
+      }
+      expensesByCategory[t.category].total += t.amount;
+      expensesByCategory[t.category].count += 1;
+      if (t.status === "paid" || t.recurrence === "once") {
+        expensesByCategory[t.category].confirmed += t.amount;
+      }
+    });
+
+  const categoryList = Object.entries(expensesByCategory)
+    .map(([category, data]) => ({
+      category,
+      ...data,
+      percentage: totalExpenses > 0 ? (data.total / totalExpenses) * 100 : 0,
+    }))
+    .sort((a, b) => b.total - a.total);
+
+  // Monthly breakdown for yearly view
+  const monthlyBreakdown = period === "yearly" ? getMonthlyBreakdown(allTransactions, now.getFullYear()) : [];
+
+  const periodLabel = {
+    daily: "Hoje",
+    weekly: "Esta semana",
+    monthly: "Este mês",
+    yearly: "Este ano",
+  }[period];
 
   return (
     <div className="space-y-4">
-      {/* Bar chart */}
-      <div className="card">
-        <h3 className="text-sm font-semibold text-gray-700 mb-4">
-          Gastos por categoria
-        </h3>
-        <div className="space-y-3">
-          {categorySummary.map((cat) => (
-            <div key={cat.category}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs font-medium text-gray-600 capitalize">
-                  {cat.category}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {formatCurrency(cat.total)} ({cat.percentage.toFixed(0)}%)
-                </span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-2.5">
-                <div
-                  className="h-2.5 rounded-full transition-all duration-500"
-                  style={{
-                    width: `${cat.percentage}%`,
-                    backgroundColor:
-                      CATEGORY_COLORS[cat.category] || CATEGORY_COLORS["outros"],
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+      {/* Period selector */}
+      <div className="grid grid-cols-4 gap-1 p-1 bg-gray-100 rounded-xl">
+        {(["daily", "weekly", "monthly", "yearly"] as Period[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`py-2 text-xs font-medium rounded-lg transition-colors ${
+              period === p
+                ? "bg-white text-primary-700 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            {p === "daily" && "Dia"}
+            {p === "weekly" && "Semana"}
+            {p === "monthly" && "Mês"}
+            {p === "yearly" && "Ano"}
+          </button>
+        ))}
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card text-center">
-          <p className="text-xs text-gray-500">Total gasto</p>
-          <p className="text-lg font-bold text-red-600">
-            {formatCurrency(totalExpenses)}
-          </p>
-        </div>
-        <div className="card text-center">
-          <p className="text-xs text-gray-500">Categorias</p>
-          <p className="text-lg font-bold text-gray-700">
-            {categorySummary.length}
-          </p>
+      <div className="card">
+        <p className="text-xs text-gray-500 mb-1">{periodLabel}</p>
+        <p className={`text-2xl font-bold ${balance >= 0 ? "text-primary-700" : "text-red-600"}`}>
+          {formatCurrency(balance)}
+        </p>
+        <div className="flex gap-4 mt-3">
+          <div>
+            <p className="text-xs text-gray-400">Entradas previstas</p>
+            <p className="text-sm font-semibold text-green-600">{formatCurrency(totalIncome)}</p>
+            <p className="text-[10px] text-green-500">Confirmado: {formatCurrency(confirmedIncome)}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-400">Saídas previstas</p>
+            <p className="text-sm font-semibold text-red-600">{formatCurrency(totalExpenses)}</p>
+            <p className="text-[10px] text-red-500">Confirmado: {formatCurrency(confirmedExpenses)}</p>
+          </div>
         </div>
       </div>
+
+      {/* Category chart */}
+      {categoryList.length > 0 && (
+        <div className="card">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4">
+            Despesas por categoria
+          </h3>
+          <div className="space-y-3">
+            {categoryList.map((cat) => (
+              <div key={cat.category}>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs font-medium text-gray-600 capitalize">
+                    {cat.category} ({cat.count})
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    {formatCurrency(cat.total)} ({cat.percentage.toFixed(0)}%)
+                  </span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3 relative overflow-hidden">
+                  {/* Total (lighter) */}
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full opacity-40"
+                    style={{
+                      width: `${cat.percentage}%`,
+                      backgroundColor: CATEGORY_COLORS[cat.category] || CATEGORY_COLORS["outros"],
+                    }}
+                  />
+                  {/* Confirmed (solid) */}
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${totalExpenses > 0 ? (cat.confirmed / totalExpenses) * 100 : 0}%`,
+                      backgroundColor: CATEGORY_COLORS[cat.category] || CATEGORY_COLORS["outros"],
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-3">
+            Barra sólida = confirmado | Barra clara = previsto
+          </p>
+        </div>
+      )}
+
+      {/* Monthly breakdown for yearly view */}
+      {period === "yearly" && monthlyBreakdown.length > 0 && (
+        <div className="card">
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Visão mensal ({now.getFullYear()})
+          </h3>
+          <div className="space-y-2">
+            {monthlyBreakdown.map((m) => (
+              <div key={m.month} className="flex items-center gap-2 text-xs">
+                <span className="w-8 text-gray-500 font-medium">{m.label}</span>
+                <div className="flex-1 flex gap-1 h-4">
+                  {m.income > 0 && (
+                    <div
+                      className="bg-green-400 rounded-sm h-full"
+                      style={{ width: `${(m.income / Math.max(...monthlyBreakdown.map(x => Math.max(x.income, x.expenses)))) * 100}%` }}
+                      title={`Entrada: ${formatCurrency(m.income)}`}
+                    />
+                  )}
+                  {m.expenses > 0 && (
+                    <div
+                      className="bg-red-400 rounded-sm h-full"
+                      style={{ width: `${(m.expenses / Math.max(...monthlyBreakdown.map(x => Math.max(x.income, x.expenses)))) * 100}%` }}
+                      title={`Saída: ${formatCurrency(m.expenses)}`}
+                    />
+                  )}
+                </div>
+                <span className={`w-20 text-right font-medium ${m.income - m.expenses >= 0 ? "text-green-600" : "text-red-600"}`}>
+                  {formatCurrency(m.income - m.expenses)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-4 mt-3 text-[10px] text-gray-400">
+            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-green-400 rounded-sm inline-block" /> Entradas</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-2 bg-red-400 rounded-sm inline-block" /> Saídas</span>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {categoryList.length === 0 && (
+        <div className="card text-center py-6">
+          <p className="text-gray-400 text-sm">
+            Sem dados para {periodLabel.toLowerCase()}.
+          </p>
+        </div>
+      )}
     </div>
   );
+}
+
+function getMonthlyBreakdown(allTransactions: Transaction[], year: number) {
+  const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+
+  return MONTH_LABELS.map((label, index) => {
+    const month = index + 1;
+    let income = 0;
+    let expenses = 0;
+
+    allTransactions.forEach((t) => {
+      let belongsToMonth = false;
+
+      if (t.recurrence === "fixed") {
+        belongsToMonth = true;
+      } else if (t.recurrence === "installment" && t.start_month && t.start_year) {
+        belongsToMonth = t.start_month === month && t.start_year === year;
+      } else if (t.recurrence === "once") {
+        const d = new Date(t.created_at);
+        belongsToMonth = d.getMonth() + 1 === month && d.getFullYear() === year;
+      }
+
+      if (belongsToMonth) {
+        if (t.type === "income") income += t.amount;
+        else expenses += t.amount;
+      }
+    });
+
+    return { month, label, income, expenses };
+  });
 }
