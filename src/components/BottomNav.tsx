@@ -17,7 +17,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40">
       <div className="max-w-md mx-auto flex items-center justify-around py-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -28,8 +28,8 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
               onClick={() => onTabChange(tab.id)}
               className={`flex flex-col items-center gap-0.5 px-4 py-1 rounded-lg transition-colors ${
                 isActive
-                  ? "text-primary-600"
-                  : "text-gray-400 hover:text-gray-600"
+                  ? "text-emerald-400"
+                  : "text-gray-500 hover:text-gray-300"
               }`}
               aria-label={tab.label}
             >

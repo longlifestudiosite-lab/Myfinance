@@ -4,19 +4,43 @@
 
 @layer base {
   body {
-    @apply min-h-screen;
+    @apply min-h-screen bg-gray-950 text-gray-100;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary-600 text-white px-4 py-2 rounded-xl font-medium
-           hover:bg-primary-700 active:bg-primary-800 transition-colors
+    @apply bg-emerald-600 text-white px-4 py-2 rounded-xl font-medium
+           hover:bg-emerald-500 active:bg-emerald-700 transition-colors
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .card {
-    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-4;
+    @apply bg-gray-900 rounded-2xl p-4 border border-gray-800;
+  }
+
+  .card-glow-green {
+    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-emerald-500 border-t border-r border-b border-gray-800;
+  }
+
+  .card-glow-red {
+    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-red-500 border-t border-r border-b border-gray-800;
+  }
+
+  .card-glow-purple {
+    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-purple-500 border-t border-r border-b border-gray-800;
+  }
+
+  .card-glow-yellow {
+    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-yellow-500 border-t border-r border-b border-gray-800;
+  }
+
+  .card-glow-blue {
+    @apply bg-gray-900 rounded-2xl p-4 border-l-4 border-l-blue-500 border-t border-r border-b border-gray-800;
+  }
+
+  .card-bordered {
+    @apply bg-gray-900 rounded-2xl p-4 border-2 border-emerald-500/30;
   }
 }
 

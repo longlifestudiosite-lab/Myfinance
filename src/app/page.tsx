@@ -77,7 +77,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-primary-700">MyFinance</h1>
+          <h1 className="text-2xl font-bold text-emerald-400">MyFinance</h1>
           <p className="text-sm text-gray-500">
             Olá, {user?.email?.split("@")[0] || "usuário"}
           </p>
@@ -114,10 +114,10 @@ export default function HomePage() {
 
           <section className="mt-6">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-lg font-semibold">Este mês</h2>
+              <h2 className="text-lg font-semibold text-gray-100">Este mês</h2>
               <button
                 onClick={() => setShowAddForm(true)}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-emerald-400 bg-emerald-950 border border-emerald-800 rounded-lg hover:bg-emerald-900 transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Adicionar
@@ -125,12 +125,12 @@ export default function HomePage() {
             </div>
 
             {/* Sub-tabs: Saídas / Entradas */}
-            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl mb-4">
+            <div className="grid grid-cols-2 gap-2 p-1 bg-gray-900 border border-gray-800 rounded-xl mb-4">
               <button
                 onClick={() => setHomeSubTab("expenses")}
                 className={`py-2 text-sm font-medium rounded-lg transition-colors ${
                   homeSubTab === "expenses"
-                    ? "bg-white text-red-600 shadow-sm"
+                    ? "bg-gray-800 text-red-400 shadow-sm"
                     : "text-gray-500"
                 }`}
               >
@@ -140,7 +140,7 @@ export default function HomePage() {
                 onClick={() => setHomeSubTab("income")}
                 className={`py-2 text-sm font-medium rounded-lg transition-colors ${
                   homeSubTab === "income"
-                    ? "bg-white text-green-600 shadow-sm"
+                    ? "bg-gray-800 text-emerald-400 shadow-sm"
                     : "text-gray-500"
                 }`}
               >

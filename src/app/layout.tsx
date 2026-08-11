@@ -35,7 +35,7 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
-      <body className="bg-gray-50 text-gray-900 antialiased">
+      <body className="bg-gray-950 text-gray-100 antialiased">
         <PWARegister />
         {children}
       </body>
