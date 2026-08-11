@@ -110,6 +110,37 @@
   background: conic-gradient(from var(--border-angle), transparent 40%, #3b82f6 50%, #60a5fa 55%, transparent 65%);
 }
 
+/* Status-based card backgrounds */
+.card-status-paid {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #064e3b, #065f46, #047857);
+  border: 1px solid #10b981;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.card-status-warning {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #713f12, #854d0e, #a16207);
+  border: 1px solid #eab308;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.card-status-overdue {
+  position: relative;
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #7f1d1d, #991b1b, #b91c1c);
+  border: 1px solid #ef4444;
+  overflow: hidden;
+  z-index: 0;
+}
+
 /* The animation using @property for smooth rotation */
 @property --border-angle {
   syntax: "<angle>";

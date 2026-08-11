@@ -43,6 +43,15 @@ function getRecurrenceLabel(t: Transaction): string | null {
 }
 
 function getCardClass(t: Transaction): string {
+  // Status-based background for fixed/installment
+  if (t.recurrence !== "once") {
+    const status = getDisplayStatus(t);
+    if (status === "pago" || status === "recebido") return "card-status-paid";
+    if (status === "alerta") return "card-status-warning";
+    if (status === "atrasado") return "card-status-overdue";
+    // em_dia or pendente - default glow by type
+  }
+  // Default glow by type
   if (t.type === "income") return "card-glow-green";
   if (t.recurrence === "installment") return "card-glow-purple";
   if (t.recurrence === "fixed") return "card-glow-red";
@@ -121,7 +130,13 @@ export function TransactionList({
                 {/* Icon */}
                 <div
                   className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                    t.type === "income"
+                    cardClass === "card-status-paid"
+                      ? "bg-green-800/50 text-green-100"
+                      : cardClass === "card-status-warning"
+                      ? "bg-yellow-800/50 text-yellow-100"
+                      : cardClass === "card-status-overdue"
+                      ? "bg-red-800/50 text-red-100"
+                      : t.type === "income"
                       ? "bg-emerald-900/50 text-emerald-400"
                       : "bg-red-900/50 text-red-400"
                   }`}
@@ -135,10 +150,20 @@ export function TransactionList({
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-gray-100 truncate">{t.description}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className={`font-medium text-sm truncate ${
+                    cardClass === "card-status-paid" ? "text-green-100" :
+                    cardClass === "card-status-warning" ? "text-yellow-100" :
+                    cardClass === "card-status-overdue" ? "text-red-100" :
+                    "text-gray-100"
+                  }`}>{t.description}</p>
+                  <p className={`text-xs ${
+                    cardClass === "card-status-paid" ? "text-green-200/70" :
+                    cardClass === "card-status-warning" ? "text-yellow-200/70" :
+                    cardClass === "card-status-overdue" ? "text-red-200/70" :
+                    "text-gray-500"
+                  }`}>
                     {t.category}
-                    {label && <span className="ml-1 text-purple-400 font-medium">• {label}</span>}
+                    {label && <span className="ml-1 font-medium">• {label}</span>}
                     {t.due_day && t.recurrence !== "once" && (
                       <span className="ml-1">• Venc. dia {t.due_day}</span>
                     )}
@@ -148,6 +173,9 @@ export function TransactionList({
                 {/* Amount */}
                 <p
                   className={`font-bold text-sm whitespace-nowrap ${
+                    cardClass === "card-status-paid" ? "text-white" :
+                    cardClass === "card-status-warning" ? "text-white" :
+                    cardClass === "card-status-overdue" ? "text-white" :
                     t.type === "income" ? "text-emerald-400" : "text-red-400"
                   }`}
                 >
