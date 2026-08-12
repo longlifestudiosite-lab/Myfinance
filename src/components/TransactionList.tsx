@@ -86,6 +86,7 @@ export function TransactionList({
   onConfirmPayment,
 }: TransactionListProps) {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -213,7 +214,7 @@ export function TransactionList({
                       Editar
                     </button>
                     <button
-                      onClick={() => onDelete(t.id)}
+                      onClick={() => setDeletingId(t.id)}
                       className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-400 bg-gray-800 border border-gray-700 rounded-lg hover:bg-red-950"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -233,7 +234,7 @@ export function TransactionList({
                     Editar
                   </button>
                   <button
-                    onClick={() => onDelete(t.id)}
+                    onClick={() => setDeletingId(t.id)}
                     className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-400 bg-gray-800 border border-gray-700 rounded-lg hover:bg-red-950"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -254,6 +255,32 @@ export function TransactionList({
           onDeleteAllInstallments={onDeleteAllInstallments}
           onClose={() => setEditingTransaction(null)}
         />
+      )}
+
+      {/* Delete confirmation modal */}
+      {deletingId && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-gray-900 border border-gray-800 w-full max-w-xs rounded-2xl p-6 text-center">
+            <p className="text-base font-semibold text-gray-100 mb-2">Confirmar exclusão</p>
+            <p className="text-sm text-gray-400 mb-5">
+              Deseja mesmo apagar esta {transactions.find(t => t.id === deletingId)?.type === "income" ? "entrada" : "despesa"}?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeletingId(null)}
+                className="flex-1 py-2.5 text-sm font-medium text-gray-300 bg-gray-800 border border-gray-700 rounded-xl hover:bg-gray-750"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { onDelete(deletingId); setDeletingId(null); }}
+                className="flex-1 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-500"
+              >
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
