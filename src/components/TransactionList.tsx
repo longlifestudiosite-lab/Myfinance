@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Car, Home, Heart, BookOpen, Gamepad2, Shirt, Briefcase, HelpCircle, Repeat, CreditCard, Pencil, Check } from "lucide-react";
+import { ShoppingCart, Car, Home, Heart, BookOpen, Gamepad2, Shirt, Briefcase, HelpCircle, Repeat, CreditCard, Pencil, Check, Trash2 } from "lucide-react";
 import type { Transaction } from "@/hooks/useTransactions";
 import { getDisplayStatus } from "@/hooks/useTransactions";
 import { EditTransactionModal } from "./EditTransactionModal";
@@ -212,19 +212,31 @@ export function TransactionList({
                       <Pencil className="w-3.5 h-3.5" />
                       Editar
                     </button>
+                    <button
+                      onClick={() => onDelete(t.id)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-400 bg-gray-800 border border-gray-700 rounded-lg hover:bg-red-950"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               )}
 
               {/* Once transactions - simple edit */}
               {t.recurrence === "once" && (
-                <div className="flex justify-end mt-3 pt-3 border-t border-gray-800">
+                <div className="flex justify-end mt-3 pt-3 border-t border-gray-800 gap-1.5">
                   <button
                     onClick={() => setEditingTransaction(t)}
                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-400 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-750"
                   >
                     <Pencil className="w-3.5 h-3.5" />
                     Editar
+                  </button>
+                  <button
+                    onClick={() => onDelete(t.id)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-red-400 bg-gray-800 border border-gray-700 rounded-lg hover:bg-red-950"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
