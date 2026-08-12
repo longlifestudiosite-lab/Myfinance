@@ -27,16 +27,31 @@ function detectCategory(text: string): string {
 }
 
 function detectType(text: string): "expense" | "income" {
-  const incomeKeywords = ["recebi", "ganhei", "salário", "renda", "entrou", "depósito"];
-  const lower = text.toLowerCase();
+  const lower = text.toLowerCase().trim();
+
+  // If starts with "entrada" -> income
+  const incomeStarters = ["entrada", "recebi", "ganhei", "recebimento"];
+  if (incomeStarters.some((kw) => lower.startsWith(kw))) {
+    return "income";
+  }
+
+  // If starts with "saída" or "despesa" or "gastei" -> expense
+  const expenseStarters = ["saída", "saida", "despesa", "gastei", "paguei", "comprei"];
+  if (expenseStarters.some((kw) => lower.startsWith(kw))) {
+    return "expense";
+  }
+
+  // Fallback: check anywhere in text
+  const incomeKeywords = ["entrada", "recebi", "ganhei", "salário", "renda", "entrou", "depósito", "recebimento"];
   if (incomeKeywords.some((kw) => lower.includes(kw))) {
     return "income";
   }
+
+  // Default: expense
   return "expense";
 }
 
 function extractAmount(text: string): number | null {
-  // Matches patterns like: "50", "50 reais", "R$ 50", "50,90", "50.90"
   const patterns = [
     /(\d+[.,]\d{2})/,
     /(\d+)\s*reais/i,
@@ -54,15 +69,14 @@ function extractAmount(text: string): number | null {
 }
 
 function extractDescription(text: string): string {
-  // Remove amount-related words and clean up
   let desc = text
     .replace(/\d+[.,]?\d*\s*(reais|real)?/gi, "")
     .replace(/r\$/gi, "")
-    .replace(/\b(gastei|paguei|comprei|recebi|ganhei)\b/gi, "")
+    // Remove type keywords from the description
+    .replace(/\b(entrada|saída|saida|despesa|gastei|paguei|comprei|recebi|ganhei|recebimento)\b/gi, "")
     .replace(/\b(no|na|de|do|em|com|para|pelo|pela)\b/gi, " ")
     .trim();
 
-  // Capitalize first letter
   desc = desc.replace(/\s+/g, " ").trim();
   if (desc.length > 0) {
     desc = desc.charAt(0).toUpperCase() + desc.slice(1);
