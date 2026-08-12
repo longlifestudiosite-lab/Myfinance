@@ -83,7 +83,15 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => refetch()}
+            onClick={() => {
+              if ('caches' in window) {
+                caches.keys().then(keys => keys.forEach(key => caches.delete(key)));
+              }
+              if (navigator.serviceWorker) {
+                navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+              }
+              window.location.reload();
+            }}
             className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-800 border border-gray-700 hover:bg-gray-700 transition-colors"
             aria-label="Atualizar"
           >
